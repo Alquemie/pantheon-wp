@@ -2,17 +2,19 @@
 // Don't show deprecations; useful under PHP 5.5
 error_reporting( E_ALL ^ E_DEPRECATED );
 
+$primary_domain = $_SERVER['HTTP_HOST'];
 // Enforce Production URL and HTTPS on Pantheon
 if (isset($_ENV['PANTHEON_ENVIRONMENT']) && php_sapi_name() != 'cli') {
   // Redirect to https://$primary_domain in the Live environment
   if ($_ENV['PANTHEON_ENVIRONMENT'] === 'live') {
-    /** Replace www.example.com with your registered domain name */
-    $primary_domain = 'www.example.com';
-  }
-  else {
-    // Redirect to HTTPS on every Pantheon environment.
-    $primary_domain = $_SERVER['HTTP_HOST'];
-  }
+    // $primary_domain = 'www.example.com';
+  } 
+  elseif ($_ENV['PANTHEON_ENVIRONMENT'] === 'test') {
+    // $primary_domain = 'test.example.ecom';
+  } 
+  elseif ($_ENV['PANTHEON_ENVIRONMENT'] === 'dev') {
+    // $primary_domain = 'dev.example.com';
+  } 
 
   if ($_SERVER['HTTP_HOST'] != $primary_domain
       || !isset($_SERVER['HTTP_USER_AGENT_HTTPS'])
@@ -80,10 +82,10 @@ elseif (isset($_ENV['PANTHEON_ENVIRONMENT'])):
 	define( 'NONCE_SALT', $_ENV['NONCE_SALT'] );
 	/**#@-*/
 
-  $scheme = 'https';
-  define( 'WP_HOME', $scheme . '://' . $_SERVER['HTTP_HOST'] );
-  define( 'WP_SITEURL', WP_HOME . '/wp' );
-
+	$scheme = 'https';
+	define( 'WP_HOME', $scheme . '://' . $primary_domain );
+	define( 'WP_SITEURL', WP_HOME . '/cms' );
+  
 	// Force the use of a safe temp directory when in a container
 	if ( defined( 'PANTHEON_BINDING' ) ):
 		define( 'WP_TEMP_DIR', sprintf( '/srv/bindings/%s/tmp', PANTHEON_BINDING ) );
@@ -104,15 +106,15 @@ endif;
 /**
 	*	Global DB Settings
 **/
-$table_prefix = 'wp_';
+$table_prefix = 'alq_';
 define( 'DB_CHARSET', 'utf8' );
 define( 'DB_COLLATE', '' );
 
 /*
 * Define wp-content directory outside of WordPress core directory
 */
-define( 'WP_CONTENT_DIR', dirname( __FILE__ ) . '/wp-content' );
-define( 'WP_CONTENT_URL', WP_HOME . '/wp-content' );
+define( 'WP_CONTENT_DIR', dirname( __FILE__ ) . '/app' );
+define( 'WP_CONTENT_URL', WP_HOME . '/app' );
 
 if ( ! defined( 'WP_DEBUG' ) ) {
     define('WP_DEBUG', false);
@@ -126,6 +128,7 @@ if ( WP_DEBUG ) {
 define('AUTOSAVE_INTERVAL', 240 );
 define('WP_POST_REVISIONS', 4);
 define('EMPTY_TRASH_DAYS', 15);  // Default is 30
+define('DISABLE_WP_CRON', false);  // If you set to TRUE, configure another method to run jobs
 
 /* That's all, stop editing! Happy blogging. */
 
